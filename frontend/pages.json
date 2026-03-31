@@ -1,0 +1,109 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "脑力锻炼",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/train/memory/memory",
+      "style": {
+        "navigationBarTitleText": "记忆力训练",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/train/attention/attention",
+      "style": {
+        "navigationBarTitleText": "注意力训练",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/train/calculation/calculation",
+      "style": {
+        "navigationBarTitleText": "计算力训练",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/train/logic/logic",
+      "style": {
+        "navigationBarTitleText": "逻辑推理",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/train/language/language",
+      "style": {
+        "navigationBarTitleText": "语言能力",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/report/report",
+      "style": {
+        "navigationBarTitleText": "训练报告",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "个人中心",
+        "navigationBarBackgroundColor": "#4a90e2",
+        "navigationBarTextStyle": "white"
+      }
+    }
+  ],
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#4a90e2",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/report/report",
+        "iconPath": "static/tab-report.png",
+        "selectedIconPath": "static/tab-report-active.png",
+        "text": "报告"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "iconPath": "static/tab-profile.png",
+        "selectedIconPath": "static/tab-profile-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "脑力锻炼",
+    "navigationBarBackgroundColor": "#4a90e2",
+    "backgroundColor": "#f5f5f5"
+  },
+  "uniIdRouter": {}
+}

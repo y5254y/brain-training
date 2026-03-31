@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # ============= MySQL 8.0 数据库服务 =============
+  mysql:
+    image: mysql:8.0
+    container_name: brain-training-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-brain_training}
+      MYSQL_USER: ${MYSQL_USER:-bt_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-btpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+      interval: 5s
+    networks:
+      - brain-training-net
+
+  # ============= Redis 7 缓存服务 =============
+  redis:
+    image: redis:7-alpine
+    container_name: brain-training-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brain-training-net
+
+  # ============= FastAPI 后端服务 =============
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brain-training-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-bt_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-btpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-brain_training}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      DEBUG: ${DEBUG:-false}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - brain-training-net
+
+# ============= 数据卷 =============
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ============= 网络 =============
+networks:
+  brain-training-net:
+    driver: bridge
