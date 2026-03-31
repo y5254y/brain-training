@@ -2,11 +2,12 @@
 认证业务逻辑服务
 处理用户注册、登录、Token 验证等逻辑
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -32,6 +33,10 @@ class AuthService:
         """根据ID查询用户"""
         return self.db.query(User).filter(User.id == user_id).first()
 
+    def get_user_by_phone(self, phone: str) -> Optional[User]:
+        """根据手机号查询用户"""
+        return self.db.query(User).filter(User.phone == phone).first()
+
     def create_user(self, user_data: UserCreate) -> User:
         """创建新用户"""
         # 对密码进行哈希处理
@@ -44,7 +49,14 @@ class AuthService:
             phone=user_data.phone,
         )
         self.db.add(db_user)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="用户名或手机号已存在",
+            )
         self.db.refresh(db_user)
         return db_user
 
@@ -73,7 +85,7 @@ class AuthService:
         if not user:
             raise HTTPException(status_code=404, detail="用户不存在")
         # 只允许更新以下字段
-        allowed_fields = {"nickname", "avatar", "phone"}
+        allowed_fields = {"nickname", "avatar", "phone", "age_group"}
         for key, value in update_data.items():
             if key in allowed_fields:
                 setattr(user, key, value)

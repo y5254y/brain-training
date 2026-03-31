@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, training, report, family
 from app.core.config import settings
+from app.core.database import create_tables
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -31,6 +32,12 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(training.router, prefix="/api/v1/training", tags=["训练"])
 app.include_router(report.router, prefix="/api/v1/report", tags=["报告"])
 app.include_router(family.router, prefix="/api/v1/family", tags=["家人关注"])
+
+
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时自动创建数据库表"""
+    create_tables()
 
 
 @app.get("/")
