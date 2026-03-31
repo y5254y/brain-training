@@ -68,3 +68,19 @@ class TokenData(BaseModel):
     """Token 载荷数据"""
     user_id: Optional[int] = None
     username: Optional[str] = None
+
+
+class UserUpdate(BaseModel):
+    """用户信息更新请求模型"""
+    nickname: Optional[str] = None
+    age_group: Optional[str] = None
+    phone: Optional[str] = None
+    avatar: Optional[str] = None
+
+    @validator("age_group")
+    def age_group_must_be_valid(cls, v):
+        if v is not None:
+            valid_groups = ["youth", "middle", "elder"]
+            if v not in valid_groups:
+                raise ValueError(f"年龄段必须是以下之一：{valid_groups}")
+        return v

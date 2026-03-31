@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, UserUpdate
 from app.services.auth_service import AuthService
 
 router = APIRouter()
@@ -30,6 +30,14 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="用户名已存在",
         )
+    # 检查手机号是否已存在
+    if user_data.phone:
+        existing_phone = auth_service.get_user_by_phone(user_data.phone)
+        if existing_phone:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="手机号已被注册",
+            )
     user = auth_service.create_user(user_data)
     return user
 
@@ -65,11 +73,11 @@ async def get_current_user_info(
 
 @router.put("/me", response_model=UserResponse, summary="更新用户信息")
 async def update_user_info(
-    update_data: dict,
+    update_data: UserUpdate,
     current_user=Depends(AuthService.get_current_user),
     db: Session = Depends(get_db),
 ):
     """更新当前用户信息（昵称、头像等）"""
     auth_service = AuthService(db)
-    updated_user = auth_service.update_user(current_user.id, update_data)
+    updated_user = auth_service.update_user(current_user.id, update_data.dict(exclude_unset=True))
     return updated_user
