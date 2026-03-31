@@ -2,7 +2,7 @@
 训练记录数据模型
 使用 SQLAlchemy ORM 定义训练记录表结构
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
@@ -33,7 +33,7 @@ class TrainingRecord(Base):
     # 创建时间（即训练完成时间）
     created_at = Column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         index=True,
         comment="训练完成时间",
     )

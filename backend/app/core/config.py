@@ -34,11 +34,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7天有效期
 
     # CORS 允许的域名列表
+    # 警告：生产环境请移除 "*"，只保留实际前端域名
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8080",
         "http://localhost:5173",
-        "*",  # 开发阶段允许所有域名，生产环境应限制
+        # 开发阶段允许所有域名，生产环境务必删除此行并配置具体域名
+        "*",
     ]
 
     @property

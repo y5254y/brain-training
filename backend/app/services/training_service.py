@@ -2,7 +2,7 @@
 训练业务逻辑服务
 处理训练记录的创建、查询、统计等逻辑
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 
 from sqlalchemy import func
@@ -90,7 +90,7 @@ class TrainingService:
         if date_str:
             target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         else:
-            target_date = datetime.utcnow().date()
+            target_date = datetime.now(timezone.utc).date()
 
         start_dt = datetime.combine(target_date, datetime.min.time())
         end_dt = start_dt + timedelta(days=1)
@@ -122,7 +122,7 @@ class TrainingService:
 
     def get_weekly_report(self, user_id: int) -> Dict[str, Any]:
         """获取最近7天的训练报告"""
-        end_dt = datetime.utcnow()
+        end_dt = datetime.now(timezone.utc)
         start_dt = end_dt - timedelta(days=7)
 
         records = (
@@ -156,7 +156,7 @@ class TrainingService:
         self, user_id: int, year: Optional[int] = None, month: Optional[int] = None
     ) -> Dict[str, Any]:
         """获取月度训练报告"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         target_year = year or now.year
         target_month = month or now.month
 
@@ -187,7 +187,7 @@ class TrainingService:
     def get_radar_data(self, user_id: int) -> Dict[str, Any]:
         """获取认知能力雷达图数据"""
         # 查询近30天各类型的平均分
-        since_dt = datetime.utcnow() - timedelta(days=30)
+        since_dt = datetime.now(timezone.utc) - timedelta(days=30)
         stats_query = (
             self.db.query(
                 TrainingRecord.game_type,

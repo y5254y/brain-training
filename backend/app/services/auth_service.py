@@ -77,7 +77,7 @@ class AuthService:
         for key, value in update_data.items():
             if key in allowed_fields:
                 setattr(user, key, value)
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(user)
         return user

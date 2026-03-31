@@ -99,8 +99,7 @@ const http = {
     let fullUrl = url
     if (params && Object.keys(params).length) {
       const query = Object.entries(params)
-        .filter(([, v]) => v !== undefined && v !== null)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .filter(([, v]) => v !== undefined && v !== null)        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&')
       if (query) fullUrl += `?${query}`
     }

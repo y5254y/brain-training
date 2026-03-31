@@ -112,17 +112,21 @@ const startGame = () => {
   const { rows, cols } = currentDifficulty.value
   const pairCount = (rows * cols) / 2
   const selectedEmojis = emojiList.slice(0, pairCount)
-  // 创建牌组（每个表情出现两次）并打乱
+  // 创建牌组（每个表情出现两次）并用 Fisher-Yates 算法打乱
   const cardList = [...selectedEmojis, ...selectedEmojis]
-    .sort(() => Math.random() - 0.5)
-    .map((emoji, index) => ({
-      id: index,
-      emoji,
-      isFlipped: false,
-      isMatched: false,
-    }))
+  // Fisher-Yates 洗牌算法（均匀随机）
+  for (let i = cardList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[cardList[i], cardList[j]] = [cardList[j], cardList[i]]
+  }
+  const mappedCards = cardList.map((emoji, index) => ({
+    id: index,
+    emoji,
+    isFlipped: false,
+    isMatched: false,
+  }))
 
-  cards.value = cardList
+  cards.value = mappedCards
   flipCount.value = 0
   matchedCount.value = 0
   timeElapsed.value = 0

@@ -113,7 +113,7 @@ const getOperands = (level) => {
   if (op === '+') { result = a + b; q = `${a} + ${b} = ?` }
   else if (op === '-') { result = a - b; q = `${Math.max(a, b)} - ${Math.min(a, b)} = ?`; }
   else if (op === '×') { const x = Math.min(a, 12); const y = Math.min(b, 12); result = x * y; q = `${x} × ${y} = ?` }
-  else { const divisor = Math.min(b, 10) || 1; result = Math.floor(a / divisor) * divisor / divisor; q = `${Math.floor(a / divisor) * divisor} ÷ ${divisor} = ?` }
+  else { const divisor = Math.min(b, 10) || 1; result = Math.floor(a / divisor); q = `${Math.floor(a / divisor) * divisor} ÷ ${divisor} = ?` }
   return { question: q, answer: Math.abs(result) }
 }
 
