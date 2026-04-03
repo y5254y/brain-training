@@ -155,9 +155,14 @@ const formatTime = (seconds) => {
 const shuffle = (arr) => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
+    // 使用分号前缀避免数组解构被误解析为上一语句的下标访问
     ;[arr[i], arr[j]] = [arr[j], arr[i]]
   }
   return arr
+}
+
+const triggerVibration = () => {
+  try { uni.vibrateShort() } catch (e) { /* 平台不支持时静默忽略 */ }
 }
 
 const startGame = () => {
@@ -208,7 +213,7 @@ const clickCell = (cell) => {
     } else if (comboCount.value >= 5) {
       comboBonus.value += 2
     }
-    try { uni.vibrateShort() } catch (e) { /* 平台不支持时静默忽略 */ }
+    triggerVibration()
     if (nextNumber.value > selectedSize.value * selectedSize.value) {
       finishGame()
     }
@@ -218,7 +223,7 @@ const clickCell = (cell) => {
     comboCount.value = 0
     // 点击锁定 300ms，防止疯狂误点
     clickLocked = true
-    try { uni.vibrateShort() } catch (e) { /* 平台不支持时静默忽略 */ }
+    triggerVibration()
     setTimeout(() => {
       cell.wrong = false
       clickLocked = false
@@ -229,7 +234,7 @@ const clickCell = (cell) => {
 const finishGame = () => {
   clearInterval(timer)
   const config = diffScoreConfig[selectedSize.value]
-  const timePenalty = Math.floor(timeElapsed.value / 5 * config.timeFactor)
+  const timePenalty = Math.floor(timeElapsed.value / 5 * config.timeFactor) // 每 5 秒扣 1 分（乘以难度系数）
   const errorPenalty = errorCount.value * config.errorFactor
   const noErrorBonus = errorCount.value === 0 ? config.noErrorBonus : 0
   score.value = Math.max(0, Math.round(config.base - timePenalty - errorPenalty + noErrorBonus + comboBonus.value))
