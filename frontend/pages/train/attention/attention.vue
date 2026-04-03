@@ -28,6 +28,7 @@
       <button class="start-btn" @click="startGame">开始游戏</button>
     </view>
 
+
     <!-- 预览阶段提示条 -->
     <view class="preview-section card" v-if="gameState === 'preview'">
       <text class="preview-tip">👀 记住数字的位置！</text>
@@ -39,6 +40,7 @@
       <!-- 游戏信息栏（仅 playing 阶段显示） -->
       <view class="game-info" v-if="gameState === 'playing'">
         <text class="next-hint">找数字：<text class="next-number">{{ nextNumber }}</text></text>
+
         <text class="timer">⏱ {{ formatTime(timeElapsed) }}</text>
         <text v-if="comboCount >= 3" class="combo-badge">🔥×{{ comboCount }}</text>
       </view>
@@ -80,8 +82,10 @@
         <text class="result-stat">⏱ 用时：{{ formatTime(timeElapsed) }}</text>
         <text class="result-stat">❌ 错误次数：{{ errorCount }}</text>
         <text class="result-stat">🎯 准确率：{{ accuracy }}%</text>
+
         <text class="result-stat">⚡ 平均反应时间：{{ avgReactionTime }} 秒/格</text>
         <text class="result-stat" v-if="maxCombo >= 3">🔥 最高连击：{{ maxCombo }}</text>
+
       </view>
       <view class="result-btns">
         <button class="result-btn retry-btn" @click="resetGame">再玩一次</button>
@@ -92,13 +96,17 @@
 </template>
 
 <script setup>
+
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+
 import { useUserStore } from '@/store/user'
 import request from '@/utils/request'
 
 const userStore = useUserStore()
 
+
 // 游戏状态：idle(等待) / preview(预览倒计时) / playing(游戏中) / finished(结束)
+
 const gameState = ref('idle')
 const selectedSize = ref(3)
 const cells = ref([])
@@ -106,6 +114,7 @@ const nextNumber = ref(1)
 const timeElapsed = ref(0)
 const errorCount = ref(0)
 const score = ref(0)
+
 const previewCountdown = ref(3)
 const comboCount = ref(0)
 const maxCombo = ref(0)
@@ -116,11 +125,13 @@ let previewTimer = null
 let inputLocked = false
 let cachedAvgSecPerCell = null  // 缓存历史平均每格耗时，用于自适应预览时间
 
+
 const difficulties = [
   { size: 3, name: '初级', difficulty: 1 },
   { size: 4, name: '中级', difficulty: 2 },
   { size: 5, name: '高级', difficulty: 3 },
 ]
+
 
 // difficulty -> grid size 映射
 const diffToSize = { 1: 3, 2: 4, 3: 5 }
@@ -173,11 +184,13 @@ const shuffle = (arr) => {
 }
 
 // 格式化时间
+
 const formatTime = (seconds) => {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0')
   const s = (seconds % 60).toString().padStart(2, '0')
   return `${m}:${s}`
 }
+
 
 // 根据历史表现计算自适应预览时长（秒）
 const computePreviewTime = (difficulty) => {
@@ -252,6 +265,7 @@ const loadRecommendation = async () => {
 }
 
 // 开始游戏（含预览倒计时）
+
 const startGame = () => {
   const total = selectedSize.value * selectedSize.value
   const numbers = shuffle(Array.from({ length: total }, (_, i) => i + 1))
@@ -269,6 +283,7 @@ const startGame = () => {
   const diff = difficulties.find((d) => d.size === selectedSize.value)
   const previewTime = computePreviewTime(diff?.difficulty || 1)
   previewCountdown.value = Math.ceil(previewTime)
+
   gameState.value = 'preview'
 
   previewTimer = setInterval(() => {
@@ -299,7 +314,20 @@ const clickCell = (cell) => {
     } else if (comboCount.value >= 3) {
       comboBonus.value += 5
     }
+
     nextNumber.value++
+    // 连击
+    comboCount.value++
+    if (comboCount.value > maxCombo.value) maxCombo.value = comboCount.value
+    // 连击奖励
+    if (comboCount.value >= 15) {
+      comboBonus.value += 5
+    } else if (comboCount.value >= 10) {
+      comboBonus.value += 3
+    } else if (comboCount.value >= 5) {
+      comboBonus.value += 2
+    }
+    triggerVibration()
     if (nextNumber.value > selectedSize.value * selectedSize.value) {
       finishGame()
     }
@@ -313,6 +341,7 @@ const clickCell = (cell) => {
     setTimeout(() => {
       cell.wrong = false
       inputLocked = false
+
     }, 300)
   }
 }
@@ -336,6 +365,7 @@ const finishGame = () => {
     Math.floor(config.base * 0.1),  // 最低保底分，避免 0 分打击
     Math.round(config.base + config.completionBonus - timePenalty - errorPenalty + perfectBonus + comboBonus.value),
   )
+
 
   gameState.value = 'finished'
   submitScore()
@@ -365,7 +395,9 @@ const resetGame = () => {
 
 const goBack = () => { uni.switchTab({ url: '/pages/index/index' }) }
 
+
 onMounted(() => { loadRecommendation() })
+
 onUnmounted(() => {
   clearInterval(timer)
   clearInterval(previewTimer)
@@ -513,6 +545,7 @@ onUnmounted(() => {
 
     .combo-badge {
       background: linear-gradient(90deg, #ff9a9e, #fecfef);
+
       color: #333;
       font-weight: bold;
       padding: 4rpx 16rpx;
@@ -536,6 +569,11 @@ onUnmounted(() => {
       font-weight: bold;
       color: #333;
       box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.08);
+      transition: transform 0.15s ease, background 0.2s ease;
+
+      &.preview {
+        opacity: 0.85;
+      }
 
       &.preview {
         background: linear-gradient(135deg, #e8f4fd, #f0f8ff);
@@ -546,12 +584,14 @@ onUnmounted(() => {
       &.clicked {
         background: linear-gradient(135deg, #84fab0, #8fd3f4);
         color: #fff;
+        transform: scale(0.95);
       }
 
       &.wrong {
         background: #ff4d4f;
         color: #fff;
         animation: shake 0.3s ease;
+
       }
     }
   }
@@ -624,9 +664,11 @@ onUnmounted(() => {
   }
 }
 
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-8rpx); }
   75% { transform: translateX(8rpx); }
+
 }
 </style>
