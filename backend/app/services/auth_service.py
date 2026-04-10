@@ -15,7 +15,6 @@ from app.core.security import verify_password, hash_password, create_access_toke
 from app.models.user import User
 from app.schemas.user import UserCreate, Token
 
-# OAuth2 Bearer Token 验证方案
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
@@ -39,7 +38,6 @@ class AuthService:
 
     def create_user(self, user_data: UserCreate) -> User:
         """创建新用户"""
-        # 对密码进行哈希处理
         password_hash = hash_password(user_data.password)
         db_user = User(
             username=user_data.username,
@@ -84,8 +82,7 @@ class AuthService:
         user = self.get_user_by_id(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="用户不存在")
-        # 只允许更新以下字段
-        allowed_fields = {"nickname", "avatar", "phone", "age_group"}
+        allowed_fields = {"nickname", "avatar", "phone", "age_group", "font_size", "high_contrast", "reminder_time"}
         for key, value in update_data.items():
             if key in allowed_fields:
                 setattr(user, key, value)

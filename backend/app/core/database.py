@@ -8,20 +8,17 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# 创建数据库引擎（使用 pymysql 驱动连接 MySQL）
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,          # 每次使用连接前检查连接是否有效
-    pool_size=10,                 # 连接池大小
-    max_overflow=20,              # 超出连接池大小后允许的最大额外连接数
-    pool_recycle=3600,            # 连接回收时间（秒），防止 MySQL 超时断开
-    echo=settings.DEBUG,          # 开发模式下打印 SQL 语句
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    pool_recycle=3600,
+    echo=settings.DEBUG,
 )
 
-# 创建会话工厂
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 声明基类（所有 ORM 模型继承此类）
 Base = declarative_base()
 
 
@@ -39,6 +36,5 @@ def get_db():
 
 def create_tables():
     """创建所有数据库表（开发/测试使用，生产环境使用 Alembic）"""
-    # 需要导入所有模型以确保它们被注册到 Base.metadata
-    from app.models import user, training  # noqa: F401
+    from app.models import user, training, family, achievement, daily_task, cognitive  # noqa: F401
     Base.metadata.create_all(bind=engine)

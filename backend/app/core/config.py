@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8080",
-        "http://localhost:5173",
+        "http://localhost:22222",
         # 开发阶段允许所有域名，生产环境务必删除此行并配置具体域名
         "*",
     ]

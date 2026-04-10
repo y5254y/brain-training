@@ -1,6 +1,6 @@
 """
 认证接口模块
-包含用户注册、登录等功能
+包含用户注册、登录、用户偏好设置等功能
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -23,14 +23,12 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     - phone: 手机号（可选）
     """
     auth_service = AuthService(db)
-    # 检查用户名是否已存在
     existing_user = auth_service.get_user_by_username(user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="用户名已存在",
         )
-    # 检查手机号是否已存在
     if user_data.phone:
         existing_phone = auth_service.get_user_by_phone(user_data.phone)
         if existing_phone:
@@ -67,7 +65,7 @@ async def get_current_user_info(
     current_user=Depends(AuthService.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """获取当前登录用户的基本信息"""
+    """获取当前登录用户的基本信息（含偏好设置）"""
     return current_user
 
 
@@ -77,7 +75,13 @@ async def update_user_info(
     current_user=Depends(AuthService.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """更新当前用户信息（昵称、头像等）"""
+    """
+    更新当前用户信息
+    支持更新：昵称、头像、手机、年龄段、字体大小、高对比度、提醒时间
+    """
     auth_service = AuthService(db)
-    updated_user = auth_service.update_user(current_user.id, update_data.dict(exclude_unset=True))
+    allowed_fields = {"nickname", "avatar", "phone", "age_group", "font_size", "high_contrast", "reminder_time"}
+    update_dict = update_data.dict(exclude_unset=True)
+    filtered = {k: v for k, v in update_dict.items() if k in allowed_fields}
+    updated_user = auth_service.update_user(current_user.id, filtered)
     return updated_user

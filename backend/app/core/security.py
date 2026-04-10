@@ -6,22 +6,28 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 
 from app.core.config import settings
-
-# 密码哈希上下文（使用 bcrypt 算法）
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
     """对密码进行哈希处理"""
-    return pwd_context.hash(password)
+    # 直接使用 bcrypt 进行密码哈希，避免 passlib 的 bug 检测问题
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(password, salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码是否正确"""
-    return pwd_context.verify(plain_password, hashed_password)
+    if isinstance(plain_password, str):
+        plain_password = plain_password.encode('utf-8')
+    if isinstance(hashed_password, str):
+        hashed_password = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(plain_password, hashed_password)
 
 
 def create_access_token(

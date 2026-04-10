@@ -1,6 +1,6 @@
 """
 训练数据接口模块
-包含提交训练成绩、获取训练记录列表等功能
+包含提交训练成绩、获取训练记录列表、难度推荐等功能
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
@@ -22,10 +22,11 @@ async def submit_training(
 ):
     """
     提交一次训练成绩
-    - game_type: 游戏类型（memory/attention/calculation/logic/language）
+    - game_type: 游戏类型
     - score: 得分
     - difficulty: 难度等级（1-5）
     - duration: 训练时长（秒）
+    - is_practice: 是否练习模式（0否1是）
     """
     training_service = TrainingService(db)
     record = training_service.create_training_record(current_user.id, training_data)
@@ -40,10 +41,7 @@ async def get_training_list(
     current_user=Depends(AuthService.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    获取当前用户的训练记录列表
-    支持按游戏类型过滤，支持分页
-    """
+    """获取当前用户的训练记录列表，支持按游戏类型过滤和分页"""
     training_service = TrainingService(db)
     records = training_service.get_user_training_records(
         user_id=current_user.id,
@@ -56,14 +54,13 @@ async def get_training_list(
 
 @router.get("/types", summary="获取训练类型列表")
 async def get_training_types():
-    """获取所有支持的训练类型"""
+    """获取所有支持的训练类型（含新增的5种）"""
+    training_service = TrainingService.__new__(TrainingService)
+    from app.services.training_service import GAME_TYPE_INFO
     return {
         "types": [
-            {"key": "memory", "name": "记忆力训练", "description": "翻牌配对、数字记忆序列"},
-            {"key": "attention", "name": "注意力训练", "description": "舒尔特方格、找不同"},
-            {"key": "calculation", "name": "计算力训练", "description": "速算挑战、24点"},
-            {"key": "logic", "name": "逻辑推理", "description": "图形推理、数列规律"},
-            {"key": "language", "name": "语言能力", "description": "成语接龙、词语联想"},
+            {"key": k, "name": v["name"], "description": v["description"]}
+            for k, v in GAME_TYPE_INFO.items()
         ]
     }
 
@@ -73,7 +70,30 @@ async def get_training_stats(
     current_user=Depends(AuthService.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """获取当前用户的训练统计数据（各类型平均分、训练次数等）"""
+    """获取当前用户的训练统计数据（各类型平均分、训练次数、连续天数等）"""
     training_service = TrainingService(db)
     stats = training_service.get_user_stats(current_user.id)
     return stats
+
+
+@router.get("/recommend", summary="获取难度推荐")
+async def get_difficulty_recommendation(
+    game_type: str = Query(..., description="游戏类型"),
+    current_user=Depends(AuthService.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """根据用户历史表现推荐合适的训练难度"""
+    training_service = TrainingService(db)
+    recommendation = training_service.get_difficulty_recommendation(current_user.id, game_type)
+    return recommendation
+
+
+@router.get("/recommendations", summary="获取今日训练推荐")
+async def get_training_recommendations(
+    current_user=Depends(AuthService.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """根据用户各维度得分，推荐今日应重点训练的项目"""
+    training_service = TrainingService(db)
+    recommendations = training_service.get_training_recommendations(current_user.id)
+    return {"recommendations": recommendations}
